@@ -12,9 +12,10 @@ frontend/dist/
 frontend/.angular/
 frontend/tmp/
 
-# Python junk
-backend/__pycache__/
-backend/.mypy_cache/
+# Python junk (covers all subdirectories)
+__pycache__/
+*.py[cod]
+*$py.class
 .mypy_cache/
 .pytest_cache/
 
