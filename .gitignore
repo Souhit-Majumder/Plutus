@@ -1,9 +1,10 @@
 # Environments & Secrets
-.venv/
-venv/
-ENV/
+backend/.venv/
+backend/venv/
+backend/ENV/
+backend/.env
+backend/access_tokens.json
 frontend/.env
-access_tokens.json
 
 # Node & Angular (Frontend specific)
 frontend/node_modules/
@@ -11,9 +12,9 @@ frontend/dist/
 frontend/.angular/
 frontend/tmp/
 
-# Python & Type Caches
-__pycache__/
-*.py[cod]
+# Python junk
+backend/__pycache__/
+backend/.mypy_cache/
 .mypy_cache/
 .pytest_cache/
 
