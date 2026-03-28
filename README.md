@@ -245,7 +245,7 @@ cp .env.example .env
 **3. Initialize the database**
 
 ```bash
-mysql -u root -p < sql/schema.sql
+Get-Content sql/schema.sql | mysql -u root -p
 ```
 
 This creates the `expense_tracker` database, all tables, and seeds categories and payment methods.
