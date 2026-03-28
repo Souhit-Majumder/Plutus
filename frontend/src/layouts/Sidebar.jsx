@@ -2,17 +2,23 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, CreditCard, Wallet, Handshake,
-  Settings, LogOut, TrendingUp, DollarSign
+  Settings, LogOut, TrendingUp, PiggyBank, DollarSign,
+  RefreshCw, PieChart, Bell
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { cn, getInitials } from '../utils/cn'
 
 const NAV = [
-  { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/expenses',  icon: CreditCard,      label: 'Expenses'  },
-  { to: '/accounts',  icon: Wallet,          label: 'Accounts'  },
-  { to: '/loans',     icon: Handshake,       label: 'Loans'     },
-  { to: '/manage',    icon: Settings,        label: 'Manage'    },
+  { to: '/',          icon: LayoutDashboard, label: 'Dashboard'   },
+  { to: '/expenses',  icon: CreditCard,      label: 'Expenses'    },
+  { to: '/accounts',  icon: Wallet,          label: 'Accounts'    },
+  { to: '/income',    icon: TrendingUp,      label: 'Income'      },
+  { to: '/goals/new', icon: PiggyBank,       label: 'Savings Goal'},
+  { to: '/loans',     icon: Handshake,       label: 'Loans'       },
+  { to: '/subscriptions', icon: RefreshCw, label: 'Subscriptions' },
+  { to: '/budgets',       icon: PieChart,  label: 'Budgets'       },
+  { to: '/reminders',     icon: Bell,      label: 'Reminders'     },
+  { to: '/manage',    icon: Settings,        label: 'Manage'      },
 ]
 
 export default function Sidebar() {

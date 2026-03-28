@@ -42,14 +42,14 @@ function CrudTable({ items, loading, refetch, service, labelKey, placeholder, ti
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-slate-500">{(items || []).length} {title.toLowerCase()}</p>
-        <button onClick={openAdd} className="btn-primary"><Plus size={14} /> Add {title.slice(0, -1)}</button>
+        <p className="text-sm text-slate-500">{(items || []).length} {title[0].toLowerCase()}</p>
+        <button onClick={openAdd} className="btn-primary"><Plus size={14} /> Add {title[1]}</button>
       </div>
 
       <div className="card overflow-hidden">
         {loading ? <LoadingOverlay /> : (items || []).length === 0 ? (
-          <EmptyState icon={Layers} title={`No ${title.toLowerCase()} yet`}
-            desc={`Add your first ${title.toLowerCase().slice(0, -1)} to get started.`} />
+          <EmptyState icon={Layers} title={`No ${title[0].toLowerCase()} yet`}
+            desc={`Add your first ${title[0].toLowerCase().slice(0, -1)} to get started.`} />
         ) : (
           <table className="w-full">
             <thead className="border-b border-slate-100 bg-slate-50/50">
@@ -83,7 +83,7 @@ function CrudTable({ items, loading, refetch, service, labelKey, placeholder, ti
 
       {/* Add/Edit Modal */}
       <Modal open={addModal} onClose={() => { setAddModal(false); setEditTarget(null); setError('') }}
-        title={editTarget ? `Edit ${title.slice(0, -1)}` : `Add ${title.slice(0, -1)}`} size="sm">
+        title={editTarget ? `Edit ${title[1]}` : `Add ${title[1]}`} size="sm">
         <div className="space-y-4">
           <ErrorBox message={error} />
           <div>
@@ -102,7 +102,7 @@ function CrudTable({ items, loading, refetch, service, labelKey, placeholder, ti
       </Modal>
 
       {/* Delete Modal */}
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={`Delete ${title.slice(0, -1)}`} size="sm">
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={`Delete ${title[1]}`} size="sm">
         <ErrorBox message={error} />
         <p className="text-sm text-slate-600 mb-4">
           Delete <span className="font-semibold">"{deleteTarget?.[labelKey]}"</span>? This may affect linked records.
@@ -120,9 +120,9 @@ function CrudTable({ items, loading, refetch, service, labelKey, placeholder, ti
 
 // ── Main page with tabs ────────────────────────────────────────────────────
 const TABS = [
-  { key: 'categories',     label: 'Categories',      icon: Layers,     service: categoryService,     labelKey: 'category_name', ph: 'e.g. Food, Travel…' },
-  { key: 'tags',           label: 'Tags',             icon: Tag,        service: tagService,          labelKey: 'tag_name',      ph: 'e.g. monthly, urgent…' },
-  { key: 'payment_methods',label: 'Payment Methods',  icon: CreditCard, service: paymentMethodService, labelKey: 'method_name',   ph: 'e.g. UPI, Cash…' },
+  { key: 'categories',     label: ['Categories', 'Category'],             icon: Layers,     service: categoryService,     labelKey: 'category_name', ph: 'e.g. Food, Travel…' },
+  { key: 'tags',           label: ['Tags', 'Tag'],                        icon: Tag,        service: tagService,          labelKey: 'tag_name',      ph: 'e.g. monthly, urgent…' },
+  { key: 'payment_methods',label: ['Payment Methods', 'Payment Method'],  icon: CreditCard, service: paymentMethodService, labelKey: 'method_name',   ph: 'e.g. UPI, Cash…' },
 ]
 
 export default function ManageDataPage() {
@@ -142,7 +142,7 @@ export default function ManageDataPage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
               activeTab === t.key ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}>
-            <t.icon size={14} /> {t.label}
+            <t.icon size={14} /> {t.label[0]}
           </button>
         ))}
       </div>

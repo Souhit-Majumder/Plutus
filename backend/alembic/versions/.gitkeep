@@ -1,2 +1,0 @@
-# Migration files go here.
-# Run: alembic revision --autogenerate -m "initial tables"

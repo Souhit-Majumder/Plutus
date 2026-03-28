@@ -1,5 +1,5 @@
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis,
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend
 } from 'recharts'
 
@@ -20,18 +20,68 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function ExpenseLineChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <LineChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-        <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
-          tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+      <AreaChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+        {/* Defining gradients for the filled areas */}
+        <defs>
+          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+          </linearGradient>
+          <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+
+        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+        <XAxis 
+          dataKey="month" 
+          tick={{ fontSize: 11, fill: '#94a3b8' }} 
+          axisLine={false} 
+          tickLine={false} 
+          dy={10}
+        />
+        <YAxis 
+          tick={{ fontSize: 11, fill: '#94a3b8' }} 
+          axisLine={false} 
+          tickLine={false}
+          tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} 
+        />
         <Tooltip content={<CustomTooltip />} />
-        <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 12 }} />
-        <Line type="monotone" dataKey="expenses" stroke="#3b82f6" strokeWidth={2}
-          dot={{ r: 3, fill: '#3b82f6' }} activeDot={{ r: 5 }} name="Expenses" />
-        <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2}
-          dot={{ r: 3, fill: '#10b981' }} activeDot={{ r: 5 }} name="Income" />
-      </LineChart>
+        <Legend 
+          verticalAlign="top" 
+          align="right" 
+          iconType="circle" 
+          iconSize={7} 
+          wrapperStyle={{ fontSize: 12, paddingBottom: 20 }} 
+        />
+
+        {/* Income Area */}
+        <Area
+          type="monotone"
+          dataKey="income"
+          stroke="#10b981"
+          strokeWidth={2}
+          fillOpacity={1}
+          fill="url(#colorIncome)"
+          name="Income"
+          dot={{ r: 3, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+          activeDot={{ r: 5 }}
+        />
+
+        {/* Expenses Area */}
+        <Area
+          type="monotone"
+          dataKey="expenses"
+          stroke="#3b82f6"
+          strokeWidth={2}
+          fillOpacity={1}
+          fill="url(#colorExpenses)"
+          name="Expenses"
+          dot={{ r: 3, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+          activeDot={{ r: 5 }}
+        />
+      </AreaChart>
     </ResponsiveContainer>
   )
 }

@@ -9,17 +9,22 @@ export function AuthProvider({ children }) {
   })
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (!token) setUser(null)
+  }, [])
+
   const login = async (email, password) => {
     setLoading(true)
     try {
       const { data } = await authService.login(email, password)
-      localStorage.setItem('access_token', data.access_token)
+      localStorage.setItem('access_token', data.token)
       const me = await authService.me()
       localStorage.setItem('user', JSON.stringify(me.data))
       setUser(me.data)
       return { ok: true }
     } catch (e) {
-      return { ok: false, error: e.response?.data?.detail || 'Login failed' }
+      return { ok: false, error: e.response?.data?.message || 'Login failed' }
     } finally {
       setLoading(false)
     }
@@ -28,10 +33,15 @@ export function AuthProvider({ children }) {
   const register = async (data) => {
     setLoading(true)
     try {
-      await authService.register(data)
-      return { ok: true }
+      const res = await authService.register(data)
+      const { token, user } = res.data
+
+      // Auto-login after successful registration
+      const loginRes = await login(data.email, data.password)
+      if (!loginRes.ok) throw new Error(loginRes.error)
+      return { ok: true}
     } catch (e) {
-      return { ok: false, error: e.response?.data?.detail || 'Registration failed' }
+      return { ok: false, error: e.response?.data?.message  || 'Registration failed' }
     } finally {
       setLoading(false)
     }
@@ -44,7 +54,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

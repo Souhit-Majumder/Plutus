@@ -9,6 +9,7 @@ import { LoadingOverlay, Badge } from '../components/ui'
 import ExpenseLineChart from '../charts/LineChart'
 import CategoryBarChart from '../charts/BarChart'
 import DonutChart from '../charts/DonutChart'
+import MiniSparkline from '../charts/MiniSparkline'
 import { accountService, expenseService, incomeService, savingsGoalService } from '../services/api'
 import { formatCurrency, formatDate } from '../utils/cn'
 
@@ -41,6 +42,21 @@ export default function DashboardPage() {
 
   if (loading) return <LoadingOverlay />
 
+
+  // ── Trend Badge Component ──────────────────────────────────────────────
+  const TrendBadge = ({ value }) => {
+    const isPositive = value >= 0;
+    const ColorClass = isPositive ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50';
+    const Icon = isPositive ? TrendingUp : TrendingDown;
+
+    return (
+      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${ColorClass}`}>
+        <Icon size={10} />
+        {Math.abs(value)}% (30 days)
+      </div>
+    );
+  };
+
   // ── Derived stats ──────────────────────────────────────────────────────
   const totalBalance = accounts.reduce((s, a) => s + parseFloat(a.balance || 0), 0)
   const thisMonth = format(new Date(), 'yyyy-MM')
@@ -49,6 +65,21 @@ export default function DashboardPage() {
   const totalSpent  = monthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
   const totalIncome = monthIncomes.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
   const recentExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8)
+  const lastMonthDate = subMonths(new Date(), 1)
+  const lastMonthKey = format(lastMonthDate, 'yyyy-MM')
+  const lastMonthExpenses = expenses.filter(e => e.date?.startsWith(lastMonthKey))
+  const lastMonthIncomes = incomes.filter(i => i.date?.startsWith(lastMonthKey))
+  const lastTotalSpent = lastMonthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+  const lastTotalIncome = lastMonthIncomes.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
+
+  // Helper to calculate percentage change
+  const getTrend = (current, previous) => {
+    if (!previous || previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
+  const incomeTrend = getTrend(totalIncome, lastTotalIncome)
+  const expenseTrend = getTrend(totalSpent, lastTotalSpent)
 
   // ── Line chart data: last 6 months ─────────────────────────────────────
   const lineData = Array.from({ length: 6 }, (_, i) => {
@@ -79,16 +110,51 @@ export default function DashboardPage() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard index={0} title="Total Balance" value={formatCurrency(totalBalance)}
+        {/* Total Balance */}
+        <StatCard 
+          index={0} 
+          title="Total Balance" 
+          value={formatCurrency(totalBalance)}
           sub={`${accounts.length} account${accounts.length !== 1 ? 's' : ''}`}
-          icon={Wallet} iconBg="bg-blue-50" iconColor="text-blue-600" />
-        <StatCard index={1} title="Monthly Income" value={formatCurrency(totalIncome)}
-          sub="This month" icon={TrendingUp} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
-        <StatCard index={2} title="Monthly Expenses" value={formatCurrency(totalSpent)}
-          sub="This month" icon={TrendingDown} iconBg="bg-red-50" iconColor="text-red-500" />
-        <StatCard index={3} title="Savings Goals" value={goals.length}
+          icon={Wallet} 
+          iconBg="bg-blue-50" 
+          iconColor="text-blue-600" 
+        />
+
+        {/* Monthly Income */}
+        <StatCard 
+          index={1}
+          title="Monthly Income" 
+          value={formatCurrency(totalIncome)}
+          icon={TrendingUp}
+          iconBg="bg-emerald-50" 
+          iconColor="text-emerald-600"
+          trend={<TrendBadge value={incomeTrend} />} 
+          sparkline={<MiniSparkline data={lineData.map(d => ({ value: d.income }))} color="#10b981" />}
+        />
+
+        {/* Monthly Expenses */}
+        <StatCard 
+          index={2}
+          title="Monthly Expenses" 
+          value={formatCurrency(totalSpent)}
+          icon={TrendingDown}
+          iconBg="bg-red-50" 
+          iconColor="text-red-500"
+          trend={<TrendBadge value={expenseTrend} />}
+          sparkline={<MiniSparkline data={lineData.map(d => ({ value: d.expenses }))} color="#ef4444" />}
+        />
+
+        {/* Savings Goals */}
+        <StatCard 
+          index={3} 
+          title="Savings Goals" 
+          value={goals.length}
           sub={`${goals.filter(g => parseFloat(g.remaining_amount) <= 0).length} completed`}
-          icon={Target} iconBg="bg-violet-50" iconColor="text-violet-600" />
+          icon={Target} 
+          iconBg="bg-violet-50" 
+          iconColor="text-violet-600" 
+        />
       </div>
 
       {/* Charts Row */}

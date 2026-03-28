@@ -64,8 +64,8 @@ export default function ExpensesPage() {
 
   const openEdit = (exp) => { setEditTarget(exp); setExpenseModal(true) }
   const handleModalClose = () => { setExpenseModal(false); setEditTarget(null) }
-  const getCatName = (id) => categories.find(c => c.id === id)?.category_name || `#${id}`
-  const getAccName = (id) => accounts.find(a => a.id === id)?.account_name || `#${id}`
+  const getCatName = (id) => categories.find(c => c.category_id === id)?.category_name || `${id}`
+  const getAccName = (id) => accounts.find(a => a.account_id === id)?.account_name || `${id}`
 
   const filtered = expenses.filter(e => !search || (e.description || '').toLowerCase().includes(search.toLowerCase()))
   const hasActiveFilters = Object.values(filters).some(Boolean)
@@ -105,7 +105,7 @@ export default function ExpensesPage() {
               <label className="label">Category</label>
               <select className="input" value={filters.category_id} onChange={setFilter('category_id')}>
                 <option value="">All</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.category_name}</option>)}
+                {categories.map(c => <option key={c.category_id} value={c.category_id}>{c.category_name}</option>)}
               </select>
             </div>
             <div>
@@ -119,7 +119,7 @@ export default function ExpensesPage() {
               <label className="label">Tag</label>
               <select className="input" value={filters.tag_id} onChange={setFilter('tag_id')}>
                 <option value="">All</option>
-                {tags.map(t => <option key={t.id} value={t.id}>{t.tag_name}</option>)}
+                {tags.map(t => <option key={t.tag_id} value={t.tag_id}>{t.tag_name}</option>)}
               </select>
             </div>
             <div>
@@ -152,16 +152,16 @@ export default function ExpensesPage() {
                     <EmptyState icon={Filter} title="No expenses found" desc="Try adjusting your filters or add your first expense." />
                   </td></tr>
                 ) : filtered.map(e => (
-                  <tr key={e.id} className="table-tr">
+                  <tr key={e.expense_id} className="table-tr">
                     <td className="table-td">
                       <p className="font-medium text-slate-800">{e.description || '—'}</p>
                     </td>
                     <td className="table-td text-slate-500 whitespace-nowrap">{formatDate(e.date)}</td>
-                    <td className="table-td text-slate-600">{getCatName(e.category_id)}</td>
-                    <td className="table-td text-slate-600">{getAccName(e.account_id)}</td>
+                    <td className="table-td text-slate-600">{getCatName(e.category_name)}</td>
+                    <td className="table-td text-slate-600">{getAccName(e.account_name)}</td>
                     <td className="table-td">
                       <div className="flex flex-wrap gap-1">
-                        {(e.tags || []).slice(0, 3).map((t, i) => <Badge key={t.id} label={t.tag_name} idx={i} />)}
+                        {(e.tags || []).slice(0, 3).map((t, i) => <Badge key={t.tag_id} label={t.tag_name} idx={i} />)}
                       </div>
                     </td>
                     <td className="table-td font-semibold text-red-500 whitespace-nowrap">

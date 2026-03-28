@@ -2,9 +2,12 @@
 // All API calls flow through this file.
 // JWT token is automatically attached to every request via interceptors.
 
-import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+import axios from 'axios'
+// api.js
+console.log("Current API URL:", import.meta.env.VITE_API_BASE_URL);
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -39,14 +42,9 @@ export default api
 export const authService = {
   register: (data) => api.post('/api/auth/register', data),
   login: (email, password) => {
-    const form = new URLSearchParams()
-    form.append('username', email)
-    form.append('password', password)
-    return api.post('/api/auth/login', form, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
+    return api.post('/api/auth/login', { email, password });
   },
-  me: () => api.get('/api/auth/me'),
+  me: () => api.get('/api/users/me'),
 }
 
 // ── Accounts ──────────────────────────────────────────────────────────────

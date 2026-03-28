@@ -21,7 +21,7 @@ export default function ExpenseModal({ open, onClose, onSaved, expense }) {
         setAccounts(a.data); setCategories(c.data); setMethods(m.data); setTags(t.data)
       })
     if (expense) {
-      setForm({ ...expense, tag_ids: (expense.tags || []).map(t => t.id) })
+      setForm({ ...expense, tag_ids: (expense.tags || []).map(t => t.tag_id) })
     } else {
       setForm({ ...EMPTY, date: new Date().toISOString().split('T')[0] })
     }
@@ -47,7 +47,7 @@ export default function ExpenseModal({ open, onClose, onSaved, expense }) {
         payment_method_id: form.payment_method_id ? parseInt(form.payment_method_id) : null,
         tag_ids: form.tag_ids,
       }
-      if (expense) await expenseService.update(expense.id, payload)
+      if (expense) await expenseService.update(expense.expense_id, payload)
       else await expenseService.create(payload)
       onSaved(); onClose()
     } catch (err) {
@@ -77,14 +77,14 @@ export default function ExpenseModal({ open, onClose, onSaved, expense }) {
             <label className="label">Account *</label>
             <select className="input" value={form.account_id} onChange={set('account_id')} required>
               <option value="">Select account</option>
-              {accounts.map(a => <option key={a.id} value={a.id}>{a.account_name}</option>)}
+              {accounts.map(a => <option key={a.account_id} value={a.account_id}>{a.account_name}</option>)}
             </select>
           </div>
           <div>
             <label className="label">Category *</label>
             <select className="input" value={form.category_id} onChange={set('category_id')} required>
               <option value="">Select category</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.category_name}</option>)}
+              {categories.map(c => <option key={c.category_id} value={c.category_id}>{c.category_name}</option>)}
             </select>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function ExpenseModal({ open, onClose, onSaved, expense }) {
           <label className="label">Payment Method</label>
           <select className="input" value={form.payment_method_id} onChange={set('payment_method_id')}>
             <option value="">None</option>
-            {methods.map(m => <option key={m.id} value={m.id}>{m.method_name}</option>)}
+            {methods.map(m => <option key={m.payment_method_id} value={m.payment_method_id}>{m.method_name}</option>)}
           </select>
         </div>
 
@@ -107,9 +107,9 @@ export default function ExpenseModal({ open, onClose, onSaved, expense }) {
             <label className="label">Tags</label>
             <div className="flex flex-wrap gap-2">
               {tags.map(t => (
-                <button key={t.id} type="button" onClick={() => toggleTag(t.id)}
+                <button key={t.tag_id} type="button" onClick={() => toggleTag(t.tag_id)}
                   className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                    form.tag_ids.includes(t.id)
+                    form.tag_ids.includes(t.tag_id)
                       ? 'bg-brand-600 text-white border-brand-600'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'
                   }`}>

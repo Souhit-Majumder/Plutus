@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import { ErrorBox } from '../components/ui'
 
 export default function RegisterPage() {
-  const { register, loading } = useAuth()
+  const { register, loading, setUser } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '' })
   const [error, setError] = useState('')
@@ -15,12 +15,18 @@ export default function RegisterPage() {
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    const res = await register(form)
-    if (res.ok) { setSuccess(true); setTimeout(() => navigate('/login'), 1500) }
-    else setError(res.error)
-  }
+    e.preventDefault();
+    setError('');
+    
+    const res = await register(form); // This now handles everything inside AuthProvider
+    
+    if (res.ok) {
+      setSuccess(true);
+      setTimeout(() => navigate('/'), 1500);
+    } else {
+      setError(res.error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
