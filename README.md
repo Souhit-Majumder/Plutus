@@ -31,6 +31,168 @@ Node.js + Express + MySQL REST API with JWT authentication.
 
 ---
 
+---
+
+```mermaid
+erDiagram
+
+USER {
+    int user_id PK
+    string name
+    string email
+    string password
+    string phone
+    datetime created_at
+}
+
+ACCOUNT {
+    int account_id PK
+    int user_id FK
+    string account_name
+    string account_type
+    decimal balance
+    datetime created_at
+}
+
+CATEGORY {
+    int category_id PK
+    string category_name
+}
+
+PAYMENT_METHOD {
+    int payment_method_id PK
+    string method_name
+}
+
+EXPENSE {
+    int expense_id PK
+    int account_id FK
+    int category_id FK
+    int payment_method_id FK
+    decimal amount
+    date date
+    string description
+}
+
+INCOME {
+    int income_id PK
+    int account_id FK
+    decimal amount
+    date date
+    string source
+    string description
+}
+
+BUDGET {
+    int budget_id PK
+    int user_id FK
+    int category_id FK
+    decimal amount
+    int month
+    int year
+}
+
+RECURRING_PAYMENT {
+    int recurring_id PK
+    int user_id FK
+    int account_id FK
+    int category_id FK
+    int payment_method_id FK
+    decimal amount
+    string frequency
+    date start_date
+    date end_date
+    string status
+}
+
+SAVINGS_GOAL {
+    int goal_id PK
+    int user_id FK
+    int account_id FK
+    string goal_name
+    decimal target_amount
+    decimal saved_amount
+    date deadline
+}
+
+TRANSACTION_NOTE {
+    int note_id PK
+    int expense_id FK
+    string note_text
+    datetime created_at
+}
+
+TAG {
+    int tag_id PK
+    string tag_name
+}
+
+EXPENSE_TAG {
+    int expense_id FK
+    int tag_id FK
+}
+
+REMINDER {
+    int reminder_id PK
+    int user_id FK
+    string reminder_type
+    date reminder_date
+    string description
+    string status
+}
+
+PERSON {
+    int person_id PK
+    int user_id FK
+    string person_name
+    string phone
+    string email
+    string notes
+}
+
+LOAN {
+    int loan_id PK
+    int user_id FK
+    int person_id FK
+    string loan_type
+    decimal amount
+    date given_date
+    date due_date
+    string description
+    string status
+}
+
+
+USER ||--o{ ACCOUNT : has
+USER ||--o{ BUDGET : sets
+USER ||--o{ RECURRING_PAYMENT : creates
+USER ||--o{ SAVINGS_GOAL : sets
+USER ||--o{ REMINDER : creates
+USER ||--o{ PERSON : manages
+USER ||--o{ LOAN : owns
+
+ACCOUNT ||--o{ EXPENSE : records
+ACCOUNT ||--o{ INCOME : receives
+ACCOUNT ||--o{ RECURRING_PAYMENT : used_for
+ACCOUNT ||--o{ SAVINGS_GOAL : linked_to
+
+CATEGORY ||--o{ EXPENSE : classifies
+CATEGORY ||--o{ BUDGET : used_in
+CATEGORY ||--o{ RECURRING_PAYMENT : used_in
+
+PAYMENT_METHOD ||--o{ EXPENSE : paid_by
+PAYMENT_METHOD ||--o{ RECURRING_PAYMENT : paid_by
+
+EXPENSE ||--o{ TRANSACTION_NOTE : has
+EXPENSE ||--o{ EXPENSE_TAG : tagged_in
+
+TAG ||--o{ EXPENSE_TAG : used_in
+
+PERSON ||--o{ LOAN : involved_in
+```
+
+---
+
 ## Project Structure
 
 ```
