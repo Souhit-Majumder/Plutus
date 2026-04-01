@@ -8,7 +8,7 @@ import { useFetch } from '../hooks/useFetch'
 import { categoryService, tagService, paymentMethodService } from '../services/api'
 
 // ── Generic CRUD table used for all three tabs ─────────────────────────────
-function CrudTable({ items, loading, refetch, service, labelKey, placeholder, title }) {
+function CrudTable({ items, loading, refetch, service, labelKey, idKey, placeholder, title }) {
   const [addModal, setAddModal] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -31,7 +31,7 @@ function CrudTable({ items, loading, refetch, service, labelKey, placeholder, ti
 
   const handleDelete = async () => {
     setSaving(true)
-    try { await service.delete(deleteTarget.id); setDeleteTarget(null); refetch() }
+    try { await service.delete(deleteTarget[idKey]); setDeleteTarget(null); refetch() }
     catch (e) { setError(e.response?.data?.detail || 'Cannot delete') }
     finally { setSaving(false) }
   }
@@ -120,9 +120,9 @@ function CrudTable({ items, loading, refetch, service, labelKey, placeholder, ti
 
 // ── Main page with tabs ────────────────────────────────────────────────────
 const TABS = [
-  { key: 'categories',     label: ['Categories', 'Category'],             icon: Layers,     service: categoryService,     labelKey: 'category_name', ph: 'e.g. Food, Travel…' },
-  { key: 'tags',           label: ['Tags', 'Tag'],                        icon: Tag,        service: tagService,          labelKey: 'tag_name',      ph: 'e.g. monthly, urgent…' },
-  { key: 'payment_methods',label: ['Payment Methods', 'Payment Method'],  icon: CreditCard, service: paymentMethodService, labelKey: 'method_name',   ph: 'e.g. UPI, Cash…' },
+  { key: 'categories',     label: ['Categories', 'Category'],             icon: Layers,     service: categoryService,     labelKey: 'category_name', ph: 'e.g. Food, Travel…', idKey: 'category_id' },
+  { key: 'tags',           label: ['Tags', 'Tag'],                        icon: Tag,        service: tagService,          labelKey: 'tag_name',      ph: 'e.g. monthly, urgent…', idKey: 'tag_id' },
+  { key: 'payment_methods',label: ['Payment Methods', 'Payment Method'],  icon: CreditCard, service: paymentMethodService, labelKey: 'method_name',   ph: 'e.g. UPI, Cash…', idKey: 'payment_method_id' },
 ]
 
 export default function ManageDataPage() {
@@ -154,6 +154,7 @@ export default function ManageDataPage() {
         refetch={refetch}
         service={tab.service}
         labelKey={tab.labelKey}
+        idKey={tab.idKey}
         placeholder={tab.ph}
         title={tab.label}
       />

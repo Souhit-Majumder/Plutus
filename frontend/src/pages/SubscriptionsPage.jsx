@@ -29,6 +29,7 @@ const FREQ_COLOR = {
 const TO_MONTHLY = { daily: 30, weekly: 4.33, monthly: 1, yearly: 1 / 12 }
 
 const EMPTY_FORM = {
+  title:             '',
   account_id:        '',
   category_id:       '',
   payment_method_id: '',
@@ -80,6 +81,7 @@ export default function SubscriptionsPage() {
     e.preventDefault(); setError(''); setSaving(true)
     try {
       await subService.create({
+        title:             form.title,
         account_id:        parseInt(form.account_id),
         category_id:       parseInt(form.category_id),
         payment_method_id: parseInt(form.payment_method_id),

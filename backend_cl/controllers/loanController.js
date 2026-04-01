@@ -48,11 +48,12 @@ const create = async (req, res, next) => {
       [person_id, req.user.user_id]
     );
     if (person.length === 0) return res.status(403).json({ message: 'Person not found or access denied' });
-
+    
+    const loanStatus = status ? status : 'active';
     const [result] = await db.query(
       `INSERT INTO LOAN (user_id, person_id, loan_type, amount, given_date, due_date, description, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.user_id, person_id, loan_type, amount, given_date, due_date || null, description || null, status || 'pending']
+      [req.user.user_id, person_id, loan_type, amount, given_date, due_date || null, description || null, loanStatus]
     );
     res.status(201).json({ loan_id: result.insertId, message: 'Loan created' });
   } catch (err) { next(err); }
@@ -76,6 +77,26 @@ const update = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// POST /api/loans/:id/repay
+const repay = async (req, res, next) => {
+  try {
+    const [result] = await db.query(
+      `UPDATE LOAN
+       SET status = 'repaid',
+           repaid_date = CURDATE()
+       WHERE loan_id = ? AND user_id = ?`,
+      [req.params.id, req.user.user_id]
+    );
+
+    if (result.affectedRows === 0)
+      return res.status(404).json({ message: 'Loan not found' });
+
+    res.json({ message: 'Loan marked as repaid' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // DELETE /api/loans/:id
 const remove = async (req, res, next) => {
   try {
@@ -88,4 +109,4 @@ const remove = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getAll, getOne, create, update, remove };
+module.exports = { getAll, getOne, create, update, repay, remove };

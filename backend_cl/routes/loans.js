@@ -8,6 +8,7 @@ router.get('/',    c.getAll);
 router.get('/:id', c.getOne);
 router.post('/',   c.create);
 router.put('/:id', c.update);
+router.post('/:id/repay', c.repay);
 router.delete('/:id', c.remove);
 
 module.exports = router;

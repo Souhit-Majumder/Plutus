@@ -31,7 +31,7 @@ export default function LoansPage() {
 
   useEffect(() => { load() }, [])
 
-  const personName = (id) => persons.find(p => p.id === id)?.person_name || `#${id}`
+  const personName = (id) => persons.find(p => p.person_id === id)?.person_name || `#${id}`
 
   const filtered = loans.filter(l => {
     if (activeTab === 'completed') return l.status === 'repaid'
@@ -40,7 +40,7 @@ export default function LoansPage() {
 
   const handleRepay = async () => {
     setRepaying(true)
-    try { await loanService.repay(repayTarget.id); setRepayTarget(null); load() }
+    try { await loanService.repay(repayTarget.loan_id); setRepayTarget(null); load() }
     finally { setRepaying(false) }
   }
 
@@ -74,9 +74,9 @@ export default function LoansPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((loan, i) => {
-            const isOverdue = loan.due_date && new Date(loan.due_date) < new Date() && loan.status === 'active'
+            const isOverdue = loan.due_date && loan.due_date < new Date() && loan.status === 'active'
             return (
-              <motion.div key={loan.id}
+              <motion.div key={loan.loan_id}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 className="card p-5"
@@ -114,9 +114,9 @@ export default function LoansPage() {
                 )}
 
                 <div className="space-y-1.5 border-t border-slate-50 pt-3">
-                  {loan.loan_date && (
+                  {loan.given_date && (
                     <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <Calendar size={11} /> Lent on {formatDate(loan.loan_date)}
+                      <Calendar size={11} /> Lent on {formatDate(loan.given_date)}
                     </div>
                   )}
                   {loan.due_date && (

@@ -56,8 +56,9 @@ export default function ExpensesPage() {
   const handleDelete = async () => {
     setDeleting(true)
     try {
-      await expenseService.delete(deleteTarget.id)
+      await expenseService.delete(deleteTarget.exepnse_id)
       setDeleteTarget(null)
+      refetch()
       load()
     } finally { setDeleting(false) }
   }
@@ -112,7 +113,7 @@ export default function ExpensesPage() {
               <label className="label">Account</label>
               <select className="input" value={filters.account_id} onChange={setFilter('account_id')}>
                 <option value="">All</option>
-                {accounts.map(a => <option key={a.id} value={a.id}>{a.account_name}</option>)}
+                {accounts.map(a => <option key={a.account_id} value={a.account_id}>{a.account_name}</option>)}
               </select>
             </div>
             <div>

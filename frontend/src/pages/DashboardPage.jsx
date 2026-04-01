@@ -203,7 +203,7 @@ export default function DashboardPage() {
             {goals.slice(0, 4).map(g => {
               const pct = Math.min(100, Math.round((parseFloat(g.saved_amount) / parseFloat(g.target_amount)) * 100))
               return (
-                <div key={g.id}>
+                <div key={g.goal_id}>
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-xs font-medium text-slate-700 truncate pr-2">{g.goal_name}</p>
                     <span className="text-[11px] text-slate-500 shrink-0">{pct}%</span>
@@ -245,12 +245,12 @@ export default function DashboardPage() {
               {recentExpenses.length === 0 ? (
                 <tr><td colSpan={4} className="table-td text-center text-slate-400 py-8">No expenses yet</td></tr>
               ) : recentExpenses.map(e => (
-                <tr key={e.id} className="table-tr">
+                <tr key={e.expense_id} className="table-tr">
                   <td className="table-td font-medium text-slate-800">{e.description || '—'}</td>
                   <td className="table-td text-slate-500">{formatDate(e.date)}</td>
                   <td className="table-td">
                     <div className="flex flex-wrap gap-1">
-                      {(e.tags || []).slice(0, 2).map((t, i) => <Badge key={t.id} label={t.tag_name} idx={i} />)}
+                      {(e.tags || []).slice(0, 2).map((t, i) => <Badge key={t.tag_id} label={t.tag_name} idx={i} />)}
                     </div>
                   </td>
                   <td className="table-td font-semibold text-red-500">

@@ -4,6 +4,7 @@ const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+const processRecurringPayments = require('./services/recurringProcessor');
 
 app.use(cors());
 app.use(express.json());
@@ -27,4 +28,9 @@ app.use('/api/tags',            require('./routes/tags'));
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+
+    processRecurringPayments();
+    setInterval(processRecurringPayments, 60 * 100);
+});

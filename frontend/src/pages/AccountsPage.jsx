@@ -28,7 +28,7 @@ export default function AccountsPage() {
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await accountService.delete(deleteTarget.id); setDeleteTarget(null); refetch() }
+    try { await accountService.delete(deleteTarget.account_id); setDeleteTarget(null); refetch() }
     finally { setDeleting(false) }
   }
 
@@ -59,7 +59,7 @@ export default function AccountsPage() {
                 const colors = TYPE_COLOR[typeKey] || TYPE_COLOR.bank
                 const Icon = TYPE_ICON[typeKey] || Wallet
                 return (
-                  <motion.div key={acc.id}
+                  <motion.div key={acc.account_id}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}

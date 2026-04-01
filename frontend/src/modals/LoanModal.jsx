@@ -3,7 +3,7 @@ import Modal from '../components/Modal'
 import { loanService, personService } from '../services/api'
 import { ErrorBox, Spinner } from '../components/ui'
 
-const EMPTY = { person_id: '', loan_type: 'lent', amount: '', loan_date: '', due_date: '', description: '' }
+const EMPTY = { person_id: '', loan_type: 'lent', amount: '', given_date: '', due_date: '', description: '' }
 
 export default function LoanModal({ open, onClose, onSaved }) {
   const [form, setForm] = useState(EMPTY)
@@ -15,7 +15,7 @@ export default function LoanModal({ open, onClose, onSaved }) {
 
   useEffect(() => {
     if (open) {
-      setForm({ ...EMPTY, loan_date: new Date().toISOString().split('T')[0] })
+      setForm({ ...EMPTY, given_date: new Date().toISOString().split('T')[0] })
       personService.list().then(r => setPersons(r.data))
     }
     setError('')
@@ -29,26 +29,39 @@ export default function LoanModal({ open, onClose, onSaved }) {
     try {
       const r = await personService.create({ person_name: newPerson })
       setPersons(p => [...p, r.data])
-      setForm(f => ({ ...f, person_id: r.data.id }))
+      setForm(f => ({ ...f, person_id: r.data.person_id }))
       setNewPerson('')
     } finally { setAddingPerson(false) }
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true)
-    try {
-      await loanService.create({
-        ...form,
-        amount: parseFloat(form.amount),
-        person_id: parseInt(form.person_id),
-        due_date: form.due_date || null,
-      })
-      onSaved(); onClose()
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create loan')
-    } finally { setLoading(false) }
-  }
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
+    try {
+      const payload = {
+        person_id: Number(form.person_id),
+        loan_type: form.loan_type,
+        amount: Number(form.amount),
+        given_date: form.given_date,
+        due_date: form.due_date || null,
+        description: form.description || null
+      };
+
+      console.log("Sending loan:", payload);
+
+      await loanService.create(payload);
+
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create loan');
+    } finally {
+      setLoading(false);
+    }
+  }
+  
   return (
     <Modal open={open} onClose={onClose} title="Add Loan" size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,7 +72,7 @@ export default function LoanModal({ open, onClose, onSaved }) {
           <div className="flex gap-2">
             <select className="input flex-1" value={form.person_id} onChange={set('person_id')} required>
               <option value="">Select person</option>
-              {persons.map(p => <option key={p.id} value={p.id}>{p.person_name}</option>)}
+              {persons.map(p => <option key={p.person_id} value={p.person_id}>{p.person_name}</option>)}
             </select>
             <div className="flex gap-1">
               <input className="input w-36" placeholder="New person" value={newPerson}
@@ -88,7 +101,7 @@ export default function LoanModal({ open, onClose, onSaved }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Loan Date</label>
-            <input className="input" type="date" value={form.loan_date} onChange={set('loan_date')} />
+            <input className="input" type="date" value={form.given_date} onChange={set('given_date')} />
           </div>
           <div>
             <label className="label">Due Date</label>
