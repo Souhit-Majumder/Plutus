@@ -60,15 +60,20 @@ export default function DashboardPage() {
   // ── Derived stats ──────────────────────────────────────────────────────
   const totalBalance = accounts.reduce((s, a) => s + parseFloat(a.balance || 0), 0)
   const thisMonth = format(new Date(), 'yyyy-MM')
-  const monthExpenses = expenses.filter(e => e.date?.startsWith(thisMonth))
-  const monthIncomes  = incomes.filter(i => i.date?.startsWith(thisMonth))
+  const isThisMonth = d => d && format(new Date(d), 'yyyy-MM') === thisMonth
+  
+  const monthExpenses = expenses.filter(e => isThisMonth(e.date))
+  const monthIncomes  = incomes.filter(i => isThisMonth(i.date))
   const totalSpent  = monthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
   const totalIncome = monthIncomes.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
   const recentExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8)
+  
   const lastMonthDate = subMonths(new Date(), 1)
   const lastMonthKey = format(lastMonthDate, 'yyyy-MM')
-  const lastMonthExpenses = expenses.filter(e => e.date?.startsWith(lastMonthKey))
-  const lastMonthIncomes = incomes.filter(i => i.date?.startsWith(lastMonthKey))
+  const isLastMonth = d => d && format(new Date(d), 'yyyy-MM') === lastMonthKey
+  
+  const lastMonthExpenses = expenses.filter(e => isLastMonth(e.date))
+  const lastMonthIncomes = incomes.filter(i => isLastMonth(i.date))
   const lastTotalSpent = lastMonthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
   const lastTotalIncome = lastMonthIncomes.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
 
@@ -85,18 +90,20 @@ export default function DashboardPage() {
   const lineData = Array.from({ length: 6 }, (_, i) => {
     const d = subMonths(new Date(), 5 - i)
     const key = format(d, 'yyyy-MM')
-    const exp = expenses.filter(e => e.date?.startsWith(key)).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-    const inc = incomes.filter(e => e.date?.startsWith(key)).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+    const matchMonth = date => date && format(new Date(date), 'yyyy-MM') === key
+    
+    const exp = expenses.filter(e => matchMonth(e.date)).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+    const inc = incomes.filter(e => matchMonth(e.date)).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
     return { month: format(d, 'MMM'), expenses: exp, income: inc }
   })
 
   // ── Bar chart data: by category ────────────────────────────────────────
   const catMap = {}
   expenses.forEach(e => {
-    const cat = e.category_id || 'Other'
-    catMap[cat] = (catMap[cat] || 0) + parseFloat(e.amount || 0)
+    const catName = e.category_name || 'Other'
+    catMap[catName] = (catMap[catName] || 0) + parseFloat(e.amount || 0)
   })
-  const barData = Object.entries(catMap).slice(0, 6).map(([k, v]) => ({ category: `Cat ${k}`, amount: v }))
+  const barData = Object.entries(catMap).sort(([, a], [, b]) => b - a).slice(0, 6).map(([k, v]) => ({ category: k, amount: v }))
 
   // ── Donut: account distribution ────────────────────────────────────────
   const donutData = accounts.map(a => ({ name: a.account_name, value: parseFloat(a.balance || 0) })).filter(d => d.value > 0)

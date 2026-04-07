@@ -41,18 +41,40 @@ function buildProgressData(saved, target) {
 
 export default function AddSavingsGoalPage() {
   const navigate = useNavigate()
-  const {data: accounts } = useFetch(accountService.list)
+  const { data: accounts } = useFetch(accountService.list)
   const [form, setForm] = useState(EMPTY)
-  const [saving, setSaving]   = useState(false)
-  const [error, setError]     = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   const { data: goals, loading: goalsLoading, refetch } = useFetch(savingsGoalService.list)
 
-  const set       = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
-  const target    = parseFloat(form.target_amount) || 0
-  const saved     = parseFloat(form.saved_amount)  || 0
-  const pct       = target > 0 ? Math.min(100, Math.round((saved / target) * 100)) : 0
+  const [updatingGoal, setUpdatingGoal] = useState(null)
+  const [updateAmount, setUpdateAmount] = useState('')
+  const [updating, setUpdating] = useState(false)
+
+  const handleUpdateSavedAmount = async (e, g) => {
+    e.preventDefault()
+    setUpdating(true)
+    try {
+      await savingsGoalService.update(g.goal_id, {
+        saved_amount: parseFloat(updateAmount)
+      })
+      refetch()
+      setUpdatingGoal(null)
+      setUpdateAmount('')
+    } catch (err) {
+      console.error(err)
+      alert(err.response?.data?.detail || 'Failed to update amount')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
+  const target = parseFloat(form.target_amount) || 0
+  const saved = parseFloat(form.saved_amount) || 0
+  const pct = target > 0 ? Math.min(100, Math.round((saved / target) * 100)) : 0
   const remaining = Math.max(0, target - saved)
 
   const handleSubmit = async (e) => {
@@ -61,10 +83,10 @@ export default function AddSavingsGoalPage() {
     try {
       await savingsGoalService.create({
         account_id: Number(form.account_id),
-        goal_name:     form.goal_name.trim(),
+        goal_name: form.goal_name.trim(),
         target_amount: parseFloat(form.target_amount),
-        saved_amount:  parseFloat(form.saved_amount || 0),
-        deadline:      form.deadline || null,
+        saved_amount: parseFloat(form.saved_amount || 0),
+        deadline: form.deadline || null,
       })
       setSuccess(true)
       refetch()
@@ -89,9 +111,9 @@ export default function AddSavingsGoalPage() {
       {/* Summary strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Target Amount', value: formatCurrency(target),    color: 'text-violet-600',  bg: 'bg-violet-50'  },
-          { label: 'Already Saved', value: formatCurrency(saved),     color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Remaining',     value: formatCurrency(remaining), color: 'text-blue-600',    bg: 'bg-blue-50'    },
+          { label: 'Target Amount', value: formatCurrency(target), color: 'text-violet-600', bg: 'bg-violet-50' },
+          { label: 'Already Saved', value: formatCurrency(saved), color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Remaining', value: formatCurrency(remaining), color: 'text-blue-600', bg: 'bg-blue-50' },
         ].map((s, i) => (
           <motion.div key={s.label}
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -214,12 +236,12 @@ export default function AddSavingsGoalPage() {
               </div>
             </div>
 
-            {/* Line chart — same Recharts style as Dashboard */}
+            {/* Line chart — FIX: Guard against single data point when target is 0 */}
             <div>
               <p className="text-[11px] text-slate-400 font-medium mb-2">Savings trajectory</p>
               <ResponsiveContainer width="100%" height={110}>
                 <LineChart
-                  data={target > 0 ? buildProgressData(saved, target) : [{ label: '0%', value: 0 }]}
+                  data={target > 0 ? buildProgressData(saved, target) : [{ label: '0%', value: 0 }, { label: '100%', value: 0 }]}
                   margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -237,9 +259,9 @@ export default function AddSavingsGoalPage() {
             {/* Stat tiles */}
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: 'Saved',  value: formatCurrency(saved),     cls: 'bg-emerald-50 text-emerald-700' },
-                { label: 'Target', value: formatCurrency(target),    cls: 'bg-violet-50  text-violet-700'  },
-                { label: 'Left',   value: formatCurrency(remaining), cls: 'bg-blue-50    text-blue-700'    },
+                { label: 'Saved', value: formatCurrency(saved), cls: 'bg-emerald-50 text-emerald-700' },
+                { label: 'Target', value: formatCurrency(target), cls: 'bg-violet-50  text-violet-700' },
+                { label: 'Left', value: formatCurrency(remaining), cls: 'bg-blue-50    text-blue-700' },
               ].map(s => {
                 const [bg, txt] = s.cls.split(' ')
                 return (
@@ -261,7 +283,8 @@ export default function AddSavingsGoalPage() {
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-800">Active Goals</p>
             <span className="text-[11px] text-slate-400">
-              {(goals || []).filter(g => parseFloat(g.remaining_amount) > 0).length} in progress
+              {/* FIX: Dynamically calculate remaining amount for the counter */}
+              {(goals || []).filter(g => (parseFloat(g.target_amount) - (parseFloat(g.saved_amount) || 0)) > 0).length} in progress
             </span>
           </div>
 
@@ -277,13 +300,21 @@ export default function AddSavingsGoalPage() {
             ) : (
               <ul className="divide-y divide-slate-50">
                 {[...(goals || [])]
-                  .sort((a, b) => parseFloat(a.remaining_amount) - parseFloat(b.remaining_amount))
+                  // FIX: Sort based on dynamically calculated remaining amount
+                  .sort((a, b) => {
+                    const aRem = parseFloat(a.target_amount) - (parseFloat(a.saved_amount) || 0);
+                    const bRem = parseFloat(b.target_amount) - (parseFloat(b.saved_amount) || 0);
+                    return aRem - bRem;
+                  })
                   .map(g => {
-                    const gSaved  = parseFloat(g.saved_amount)
-                    const gTarget = parseFloat(g.target_amount)
-                    const gPct    = Math.min(100, Math.round((gSaved / gTarget) * 100))
-                    const done    = parseFloat(g.remaining_amount) <= 0
-                    const sparkD  = buildProgressData(gSaved, gTarget)
+                    // FIX: Safe calculations fallback to 0 if missing
+                    const gSaved = parseFloat(g.saved_amount) || 0;
+                    const gTarget = parseFloat(g.target_amount) || 0;
+                    const gRem = gTarget - gSaved;
+                    const gPct = gTarget > 0 ? Math.min(100, Math.round((gSaved / gTarget) * 100)) : 0;
+                    const done = gRem <= 0;
+                    const sparkD = buildProgressData(gSaved, gTarget);
+
                     return (
                       <li key={g.goal_id} className="px-5 py-4">
                         {/* Header row */}
@@ -310,7 +341,7 @@ export default function AddSavingsGoalPage() {
                           />
                         </div>
 
-                        {/* Mini sparkline — same line style as Dashboard */}
+                        {/* Mini sparkline */}
                         {!done && sparkD.length > 0 && (
                           <ResponsiveContainer width="100%" height={42}>
                             <LineChart data={sparkD} margin={{ top: 2, right: 2, left: -48, bottom: 0 }}>
@@ -332,6 +363,33 @@ export default function AddSavingsGoalPage() {
                             Due {new Date(g.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         )}
+
+                        {!done && updatingGoal === g.goal_id ? (
+                          <form onSubmit={(e) => handleUpdateSavedAmount(e, g)} className="mt-3 flex gap-2">
+                            <div className="relative flex-1 min-w-0">
+                               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-medium">₹</span>
+                               <input
+                                 type="number" step="0.01" min="0" required autoFocus
+                                 className="input py-1.5 pl-6 pr-2 text-xs w-full"
+                                 placeholder="Total saved"
+                                 value={updateAmount}
+                                 onChange={(e) => setUpdateAmount(e.target.value)}
+                               />
+                            </div>
+                            <button type="submit" disabled={updating} className="btn-primary py-1.5 px-2.5 text-[10px] shrink-0">
+                              {updating ? '...' : 'Save'}
+                            </button>
+                            <button type="button" onClick={() => setUpdatingGoal(null)} className="btn-secondary py-1.5 px-2.5 text-[10px] shrink-0">
+                              Cancel
+                            </button>
+                          </form>
+                        ) : !done ? (
+                          <div className="mt-3 border-t border-slate-50 pt-3">
+                            <button onClick={() => { setUpdatingGoal(g.goal_id); setUpdateAmount(gSaved) }} className="text-[10px] font-medium text-violet-600 bg-violet-50 px-2.5 py-1.5 rounded-lg hover:bg-violet-100 transition-colors flex items-center gap-1">
+                              <Plus size={12} /> Update Saved Amount
+                            </button>
+                          </div>
+                        ) : null}
                       </li>
                     )
                   })}

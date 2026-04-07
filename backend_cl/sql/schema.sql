@@ -48,37 +48,6 @@ CREATE TABLE IF NOT EXISTS ACCOUNT (
 );
 
 -- ─────────────────────────────────────────────
--- Expense
--- ─────────────────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS EXPENSE (
-    expense_id        INT AUTO_INCREMENT PRIMARY KEY,
-    account_id        INT NOT NULL,
-    category_id       INT NOT NULL,
-    payment_method_id INT NOT NULL,
-    amount            DECIMAL(15,2) NOT NULL,
-    date              DATE NOT NULL,
-    description       VARCHAR(500),
-    FOREIGN KEY (account_id)        REFERENCES ACCOUNT(account_id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id)       REFERENCES CATEGORY(category_id),
-    FOREIGN KEY (payment_method_id) REFERENCES PAYMENT_METHOD(payment_method_id)
-);
-
--- ─────────────────────────────────────────────
--- Income
--- ─────────────────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS INCOME (
-    income_id  INT AUTO_INCREMENT PRIMARY KEY,
-    account_id INT NOT NULL,
-    amount     DECIMAL(15,2) NOT NULL,
-    date       DATE NOT NULL,
-    source     VARCHAR(255),
-    description VARCHAR(500),
-    FOREIGN KEY (account_id) REFERENCES ACCOUNT(account_id) ON DELETE CASCADE
-);
-
--- ─────────────────────────────────────────────
 -- Budget
 -- ─────────────────────────────────────────────
 
@@ -101,6 +70,7 @@ CREATE TABLE IF NOT EXISTS BUDGET (
 CREATE TABLE IF NOT EXISTS RECURRING_PAYMENT (
     recurring_id      INT AUTO_INCREMENT PRIMARY KEY,
     user_id           INT NOT NULL,
+    title             VARCHAR(120),
     account_id        INT NOT NULL,
     category_id       INT NOT NULL,
     payment_method_id INT NOT NULL,
@@ -113,6 +83,39 @@ CREATE TABLE IF NOT EXISTS RECURRING_PAYMENT (
     FOREIGN KEY (account_id)        REFERENCES ACCOUNT(account_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id)       REFERENCES CATEGORY(category_id),
     FOREIGN KEY (payment_method_id) REFERENCES PAYMENT_METHOD(payment_method_id)
+);
+
+-- ─────────────────────────────────────────────
+-- Expense
+-- ─────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS EXPENSE (
+    expense_id        INT AUTO_INCREMENT PRIMARY KEY,
+    account_id        INT NOT NULL,
+    category_id       INT NOT NULL,
+    payment_method_id INT NOT NULL,
+    amount            DECIMAL(15,2) NOT NULL,
+    date              DATE NOT NULL,
+    description       VARCHAR(500),
+    recurring_id      INT DEFAULT NULL,
+    FOREIGN KEY (account_id)        REFERENCES ACCOUNT(account_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id)       REFERENCES CATEGORY(category_id),
+    FOREIGN KEY (payment_method_id) REFERENCES PAYMENT_METHOD(payment_method_id),
+    FOREIGN KEY (recurring_id)      REFERENCES RECURRING_PAYMENT(recurring_id) ON DELETE SET NULL
+);
+
+-- ─────────────────────────────────────────────
+-- Income
+-- ─────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS INCOME (
+    income_id   INT AUTO_INCREMENT PRIMARY KEY,
+    account_id  INT NOT NULL,
+    amount      DECIMAL(15,2) NOT NULL,
+    date        DATE NOT NULL,
+    source      VARCHAR(255),
+    description VARCHAR(500),
+    FOREIGN KEY (account_id) REFERENCES ACCOUNT(account_id) ON DELETE CASCADE
 );
 
 -- ─────────────────────────────────────────────
@@ -189,7 +192,6 @@ CREATE TABLE IF NOT EXISTS PERSON (
 
 CREATE TABLE IF NOT EXISTS LOAN (
     loan_id     INT AUTO_INCREMENT PRIMARY KEY,
-    user_id     INT NOT NULL,
     person_id   INT NOT NULL,
     loan_type   ENUM('given','received') NOT NULL,
     amount      DECIMAL(15,2) NOT NULL,
@@ -197,7 +199,7 @@ CREATE TABLE IF NOT EXISTS LOAN (
     due_date    DATE,
     description VARCHAR(500),
     status      ENUM('pending','settled','overdue') DEFAULT 'pending',
-    FOREIGN KEY (user_id)   REFERENCES USER(user_id) ON DELETE CASCADE,
+    repaid_date DATE,
     FOREIGN KEY (person_id) REFERENCES PERSON(person_id) ON DELETE CASCADE
 );
 
