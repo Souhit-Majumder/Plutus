@@ -317,6 +317,138 @@ flowchart TD
     INVOLVED_IN --> PERSON
 ```
 
+```mermaid
+erDiagram
+    USER {
+        int user_id PK
+        varchar(255) name
+        varchar(255) email
+        varchar(255) password
+        varchar(20) phone
+        datetime created_at
+    }
+
+    ACCOUNT {
+        int account_id PK
+        int user_id FK
+        varchar(255) account_name
+        varchar(50) account_type
+        decimal(15_2) balance
+        datetime created_at
+    }
+
+    CATEGORY {
+        int category_id PK
+        varchar(100) category_name
+    }
+
+    PAYMENT_METHOD {
+        int payment_method_id PK
+        varchar(100) method_name
+    }
+
+    EXPENSE {
+        int expense_id PK
+        int account_id FK
+        int category_id FK
+        int payment_method_id FK
+        decimal(15_2) amount
+        date date
+        varchar(500) description
+        int recurring_id FK "Nullable"
+    }
+
+    INCOME {
+        int income_id PK
+        int account_id FK
+        decimal(15_2) amount
+        date date
+        varchar(255) source
+        varchar(500) description
+    }
+
+    BUDGET {
+        int budget_id PK
+        int user_id FK
+        int category_id FK
+        decimal(15_2) amount
+        tinyint month
+        smallint year
+    }
+
+    RECURRING_PAYMENT {
+        int recurring_id PK
+        int user_id FK
+        varchar(120) title
+        int account_id FK
+        int category_id FK
+        int payment_method_id FK
+        decimal(15_2) amount
+        enum frequency
+        date start_date
+        date end_date
+        enum status
+    }
+
+    SAVINGS_GOAL {
+        int goal_id PK
+        int user_id FK
+        int account_id FK
+        varchar(255) goal_name
+        decimal(15_2) target_amount
+        decimal(15_2) saved_amount
+        date deadline
+    }
+
+    TRANSACTION_NOTE {
+        int note_id PK
+        int expense_id FK
+        text note_text
+        datetime created_at
+    }
+
+    TAG {
+        int tag_id PK
+        varchar(100) tag_name
+    }
+
+    EXPENSE_TAG {
+        int expense_id PK
+        int tag_id FK
+    }
+
+    REMINDER {
+        int reminder_id PK
+        int user_id FK
+        varchar(100) reminder_type
+        date reminder_date
+        varchar(500) description
+        enum status
+    }
+
+    PERSON {
+        int person_id PK
+        int user_id FK
+        varchar(255) person_name
+        varchar(20) phone
+        varchar(255) email
+        text notes
+    }
+
+    LOAN {
+        int loan_id PK
+        int user_id FK
+        int person_id FK
+        enum loan_type
+        decimal(15_2) amount
+        date given_date
+        date due_date
+        varchar(500) description
+        enum status
+        date repaid_date
+    }
+```
+
 ---
 
 ## Project Structure
