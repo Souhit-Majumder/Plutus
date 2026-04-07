@@ -202,16 +202,3 @@ CREATE TABLE IF NOT EXISTS LOAN (
     repaid_date DATE,
     FOREIGN KEY (person_id) REFERENCES PERSON(person_id) ON DELETE CASCADE
 );
-
--- ─────────────────────────────────────────────
--- Seed data for lookup tables
--- ─────────────────────────────────────────────
-
-INSERT IGNORE INTO CATEGORY (category_name) VALUES
-    ('Food & Dining'), ('Transport'), ('Shopping'), ('Entertainment'),
-    ('Health & Medical'), ('Utilities'), ('Rent'), ('Education'),
-    ('Travel'), ('Subscriptions'), ('Salary'), ('Freelance'), ('Other');
-
-INSERT IGNORE INTO PAYMENT_METHOD (method_name) VALUES
-    ('Cash'), ('Credit Card'), ('Debit Card'), ('UPI'), ('Net Banking'),
-    ('Wallet'), ('Cheque'), ('Bank Transfer');

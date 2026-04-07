@@ -54,6 +54,7 @@ export const accountService = {
   create: (data) => api.post('/api/accounts/', data),
   update: (id, data) => api.put(`/api/accounts/${id}`, data),
   delete: (id) => api.delete(`/api/accounts/${id}`),
+  monthlySummary: (month, year) => api.get('/api/accounts/monthly-summary', { params: { month, year } }),
 }
 
 // ── Categories ────────────────────────────────────────────────────────────

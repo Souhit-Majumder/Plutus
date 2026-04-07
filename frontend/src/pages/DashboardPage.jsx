@@ -19,20 +19,24 @@ export default function DashboardPage() {
   const [expenses, setExpenses] = useState([])
   const [incomes, setIncomes] = useState([])
   const [goals, setGoals] = useState([])
+  const [monthlySummary, setMonthlySummary] = useState({ total_income: 0, total_expense: 0 })
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [a, e, inc, g] = await Promise.all([
+        const now = new Date()
+        const [a, e, inc, g, summary] = await Promise.all([
           accountService.list(),
           expenseService.list(),
           incomeService.list(),
           savingsGoalService.list(),
+          accountService.monthlySummary(now.getMonth() + 1, now.getFullYear()),
         ])
         setAccounts(a.data)
         setExpenses(e.data)
         setIncomes(inc.data)
         setGoals(g.data)
+        setMonthlySummary(summary.data)
       } finally {
         setLoading(false)
       }
@@ -59,15 +63,14 @@ export default function DashboardPage() {
 
   // ── Derived stats ──────────────────────────────────────────────────────
   const totalBalance = accounts.reduce((s, a) => s + parseFloat(a.balance || 0), 0)
-  const thisMonth = format(new Date(), 'yyyy-MM')
-  const isThisMonth = d => d && format(new Date(d), 'yyyy-MM') === thisMonth
-  
-  const monthExpenses = expenses.filter(e => isThisMonth(e.date))
-  const monthIncomes  = incomes.filter(i => isThisMonth(i.date))
-  const totalSpent  = monthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-  const totalIncome = monthIncomes.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
+
+  // Current month totals from stored procedure
+  const totalSpent  = parseFloat(monthlySummary.total_expense || 0)
+  const totalIncome = parseFloat(monthlySummary.total_income || 0)
+
   const recentExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8)
   
+  // Last month (client-side for trend comparison)
   const lastMonthDate = subMonths(new Date(), 1)
   const lastMonthKey = format(lastMonthDate, 'yyyy-MM')
   const isLastMonth = d => d && format(new Date(d), 'yyyy-MM') === lastMonthKey

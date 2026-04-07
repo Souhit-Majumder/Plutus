@@ -4,6 +4,7 @@ const c = require('../controllers/accountController');
 
 router.use(auth);
 
+router.get('/monthly-summary', c.getMonthlySummary);
 router.get('/',    c.getAll);
 router.get('/:id', c.getOne);
 router.post('/',   c.create);

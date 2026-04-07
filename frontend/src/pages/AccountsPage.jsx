@@ -28,6 +28,7 @@ export default function AccountsPage() {
   const [accounts, setAccounts] = useState([])
   const [expenses, setExpenses] = useState([])
   const [incomes, setIncomes] = useState([])
+  const [monthlySummary, setMonthlySummary] = useState({ total_income: 0, total_expense: 0 })
 
   const [selectedAccountId, setSelectedAccountId] = useState('all')
 
@@ -39,14 +40,17 @@ export default function AccountsPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [a, e, inc] = await Promise.all([
+      const now = new Date()
+      const [a, e, inc, summary] = await Promise.all([
         accountService.list(),
         expenseService.list(),
-        incomeService.list()
+        incomeService.list(),
+        accountService.monthlySummary(now.getMonth() + 1, now.getFullYear()),
       ])
       setAccounts(a.data)
       setExpenses(e.data)
       setIncomes(inc.data)
+      setMonthlySummary(summary.data)
     } finally {
       setLoading(false)
     }
@@ -83,12 +87,20 @@ export default function AccountsPage() {
   // ── Derived Stats ──
   const totalBalance = filteredAccounts.reduce((s, a) => s + parseFloat(a.balance || 0), 0)
   
+  // Use stored procedure for cumulative "all accounts" view; client-side for per-account
   const thisMonth = format(new Date(), 'yyyy-MM')
   const isThisMonth = d => d && format(new Date(d), 'yyyy-MM') === thisMonth
-  const monthExpenses = filteredExpenses.filter(e => isThisMonth(e.date))
-  const monthIncomes  = filteredIncomes.filter(i => isThisMonth(i.date))
-  const totalSpent  = monthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-  const totalIncome = monthIncomes.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
+
+  let totalSpent, totalIncome
+  if (selectedAccountId === 'all') {
+    totalSpent  = parseFloat(monthlySummary.total_expense || 0)
+    totalIncome = parseFloat(monthlySummary.total_income || 0)
+  } else {
+    const monthExpenses = filteredExpenses.filter(e => isThisMonth(e.date))
+    const monthIncomes  = filteredIncomes.filter(i => isThisMonth(i.date))
+    totalSpent  = monthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+    totalIncome = monthIncomes.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
+  }
 
   const lastMonthDate = subMonths(new Date(), 1)
   const lastMonthKey = format(lastMonthDate, 'yyyy-MM')

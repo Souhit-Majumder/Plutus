@@ -67,4 +67,19 @@ const remove = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getAll, getOne, create, update, remove };
+// GET /api/accounts/monthly-summary?month=4&year=2026
+const getMonthlySummary = async (req, res, next) => {
+  try {
+    const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+    const year  = parseInt(req.query.year)  || new Date().getFullYear();
+
+    const [results] = await db.query(
+      'CALL GetUserMonthlySummary(?, ?, ?)',
+      [req.user.user_id, month, year]
+    );
+    // CALL returns an array of result sets; first element has the rows
+    res.json(results[0][0] || { total_income: 0, total_expense: 0 });
+  } catch (err) { next(err); }
+};
+
+module.exports = { getAll, getOne, create, update, remove, getMonthlySummary };
