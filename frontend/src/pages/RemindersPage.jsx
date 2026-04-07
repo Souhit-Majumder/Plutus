@@ -95,8 +95,13 @@ const handleCreate = async (e) => {
 }
 
 const handleComplete = async (id) => {
-  await reminderService.complete(id)
-  refetch()
+  try {
+    await reminderService.complete(id)
+    refetch()
+  } catch (err) {
+    console.error('Failed to complete reminder:', err)
+    alert(err.response?.data?.message || 'Failed to mark reminder as done')
+  }
 }
 
 const handleDelete = async (id) => {

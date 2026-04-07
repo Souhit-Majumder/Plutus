@@ -65,4 +65,15 @@ const remove = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getAll, getOne, create, update, remove };
+const complete = async (req, res, next) => {
+  try {
+    const [result] = await db.query(
+      `UPDATE REMINDER SET status = 'done' WHERE reminder_id = ? AND user_id = ?`,
+      [req.params.id, req.user.user_id]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Reminder not found' });
+    res.json({ message: 'Reminder marked as done' });
+  } catch (err) { next(err); }
+};
+
+module.exports = { getAll, getOne, create, update, complete, remove };

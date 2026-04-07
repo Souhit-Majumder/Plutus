@@ -56,9 +56,8 @@ export default function ExpensesPage() {
   const handleDelete = async () => {
     setDeleting(true)
     try {
-      await expenseService.delete(deleteTarget.exepnse_id)
+      await expenseService.delete(deleteTarget.expense_id)
       setDeleteTarget(null)
-      refetch()
       load()
     } finally { setDeleting(false) }
   }

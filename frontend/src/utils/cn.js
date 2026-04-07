@@ -12,8 +12,11 @@ export function formatCurrency(amount, currency = '₹') {
 
 export function formatDate(dateStr) {
   if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  // Extract just YYYY-MM-DD to avoid UTC timezone shift
+  const iso = typeof dateStr === 'string' ? dateStr.slice(0, 10) : new Date(dateStr).toISOString().slice(0, 10)
+  const [y, m, d] = iso.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export function getInitials(name = '') {
