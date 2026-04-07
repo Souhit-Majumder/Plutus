@@ -199,26 +199,44 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    %% ENTITIES (Strong)
-    USER[User]
-    ACCOUNT[Account]
-    CATEGORY[Category]
-    PAYMENT[Payment Method]
-    EXPENSE[Expense]
-    INCOME[Income]
-    BUDGET[Budget]
-    RECURRING[Recurring Payment]
-    SAVINGS[Savings Goal]
-    TAG[Tag]
-    REMINDER[Reminder]
-    PERSON[Person]
-    LOAN[Loan]
+    %% ==========================================
+    %% DOMAIN CLUSTERS (Subgraphs)
+    %% ==========================================
 
-    %% ENTITIES (Weak - Doubly Bounded Box)
-    NOTE[[Transaction Note]]
-    EXPENSE_TAG[[Expense Tag]]
+    subgraph Domain_User ["User & People Administration"]
+        direction TB
+        USER[User]
+        PERSON[Person]
+        LOAN[Loan]
+        REMINDER[Reminder]
+    end
 
+    subgraph Domain_Accounts ["Accounts & Inflows"]
+        direction TB
+        ACCOUNT[Account]
+        INCOME[Income]
+    end
+
+    subgraph Domain_Planning ["Planning & Goals"]
+        direction TB
+        BUDGET[Budget]
+        SAVINGS[Savings Goal]
+        RECURRING[Recurring Payment]
+    end
+
+    subgraph Domain_Expenses ["Expense Engine"]
+        direction TB
+        EXPENSE[Expense]
+        CATEGORY[Category]
+        PAYMENT[Payment Method]
+        TAG[Tag]
+        NOTE[[Transaction Note]]
+        EXPENSE_TAG[[Expense Tag]]
+    end
+
+    %% ==========================================
     %% RELATIONSHIPS (Standard - Diamonds)
+    %% ==========================================
     OWNS_ACC{owns}
     SETS_BUD{sets}
     CREATES_REC{creates}
@@ -238,81 +256,51 @@ flowchart TD
     GENERATES_EXP{generates}
     INVOLVED_IN{involved_in}
 
-    %% RELATIONSHIPS (Identifying/Weak - Hexagons acting as Double Diamonds)
+    %% RELATIONSHIPS (Identifying/Weak - Hexagons)
     HAS_NOTE{{"has"}}
     TAGS_EXP{{"tagged_in"}}
     TAGS_TAG{{"used_in"}}
 
-    %% USER RELATIONS
-    ACCOUNT === OWNS_ACC
-    OWNS_ACC --> USER
+    %% ==========================================
+    %% MAPPINGS
+    %% ==========================================
 
-    BUDGET === SETS_BUD
-    SETS_BUD --> USER
+    %% User Relations
+    ACCOUNT === OWNS_ACC --> USER
+    BUDGET === SETS_BUD --> USER
+    RECURRING === CREATES_REC --> USER
+    SAVINGS === HAS_GOAL --> USER
+    REMINDER === SETS_REM --> USER
+    PERSON === MANAGES_PER --> USER
+    LOAN === OWNS_LOAN --> USER
 
-    RECURRING === CREATES_REC
-    CREATES_REC --> USER
+    %% Account Relations
+    EXPENSE === RECORDS_EXP --> ACCOUNT
+    INCOME === RECEIVES_INC --> ACCOUNT
+    RECURRING === USED_FOR_REC --> ACCOUNT
+    SAVINGS === LINKED_SAV --> ACCOUNT
 
-    SAVINGS === HAS_GOAL
-    HAS_GOAL --> USER
+    %% Category Relations
+    EXPENSE === CATEGORIZES_EXP --> CATEGORY
+    BUDGET === LIMITS_BUD --> CATEGORY
+    RECURRING === USED_IN_REC --> CATEGORY
 
-    REMINDER === SETS_REM
-    SETS_REM --> USER
+    %% Payment Method Relations
+    EXPENSE === PAID_BY_EXP --> PAYMENT
+    RECURRING === PAID_BY_REC --> PAYMENT
 
-    PERSON === MANAGES_PER
-    MANAGES_PER --> USER
+    %% Recurring Payment to Expense
+    EXPENSE --- GENERATES_EXP --> RECURRING
 
-    LOAN === OWNS_LOAN
-    OWNS_LOAN --> USER
+    %% Weak Entity: Transaction Note
+    NOTE === HAS_NOTE --> EXPENSE
 
-    %% ACCOUNT RELATIONS
-    EXPENSE === RECORDS_EXP
-    RECORDS_EXP --> ACCOUNT
+    %% Weak/Associative Entity: Expense Tag
+    EXPENSE_TAG === TAGS_EXP --> EXPENSE
+    EXPENSE_TAG === TAGS_TAG --> TAG
 
-    INCOME === RECEIVES_INC
-    RECEIVES_INC --> ACCOUNT
-
-    RECURRING === USED_FOR_REC
-    USED_FOR_REC --> ACCOUNT
-
-    SAVINGS === LINKED_SAV
-    LINKED_SAV --> ACCOUNT
-
-    %% CATEGORY RELATIONS
-    EXPENSE === CATEGORIZES_EXP
-    CATEGORIZES_EXP --> CATEGORY
-
-    BUDGET === LIMITS_BUD
-    LIMITS_BUD --> CATEGORY
-
-    RECURRING === USED_IN_REC
-    USED_IN_REC --> CATEGORY
-
-    %% PAYMENT METHOD RELATIONS
-    EXPENSE === PAID_BY_EXP
-    PAID_BY_EXP --> PAYMENT
-
-    RECURRING === PAID_BY_REC
-    PAID_BY_REC --> PAYMENT
-
-    %% RECURRING PAYMENT TO EXPENSE
-    EXPENSE --- GENERATES_EXP
-    GENERATES_EXP --> RECURRING
-
-    %% WEAK ENTITY: TRANSACTION NOTE (Uses Hexagon)
-    NOTE === HAS_NOTE
-    HAS_NOTE --> EXPENSE
-
-    %% WEAK/ASSOCIATIVE ENTITY: EXPENSE TAG (Uses Hexagons)
-    EXPENSE_TAG === TAGS_EXP
-    TAGS_EXP --> EXPENSE
-
-    EXPENSE_TAG === TAGS_TAG
-    TAGS_TAG --> TAG
-
-    %% PERSON & LOAN RELATIONS
-    LOAN === INVOLVED_IN
-    INVOLVED_IN --> PERSON
+    %% Person & Loan Relations
+    LOAN === INVOLVED_IN --> PERSON
 ```
 
 ```mermaid
