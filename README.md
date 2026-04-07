@@ -218,7 +218,7 @@ flowchart TD
     NOTE[[Transaction Note]]
     EXPENSE_TAG[[Expense Tag]]
 
-    %% RELATIONSHIPS (Diamonds)
+    %% RELATIONSHIPS (Standard - Diamonds)
     OWNS_ACC{owns}
     SETS_BUD{sets}
     CREATES_REC{creates}
@@ -236,13 +236,14 @@ flowchart TD
     PAID_BY_EXP{paid_by}
     PAID_BY_REC{paid_by}
     GENERATES_EXP{generates}
-    HAS_NOTE{has}
-    TAGS_EXP{tagged_in}
-    TAGS_TAG{used_in}
     INVOLVED_IN{involved_in}
 
+    %% RELATIONSHIPS (Identifying/Weak - Hexagons acting as Double Diamonds)
+    HAS_NOTE{{"has"}}
+    TAGS_EXP{{"tagged_in"}}
+    TAGS_TAG{{"used_in"}}
+
     %% USER RELATIONS
-    %% M-side Total (===), 1-side Partial (-->)
     ACCOUNT === OWNS_ACC
     OWNS_ACC --> USER
 
@@ -295,17 +296,14 @@ flowchart TD
     PAID_BY_REC --> PAYMENT
 
     %% RECURRING PAYMENT TO EXPENSE
-    %% Expense's recurring_id is NULLable (Partial participation on both sides)
     EXPENSE --- GENERATES_EXP
     GENERATES_EXP --> RECURRING
 
-    %% WEAK ENTITY: TRANSACTION NOTE
-    %% Note has total participation, Expense is the 1-side
+    %% WEAK ENTITY: TRANSACTION NOTE (Uses Hexagon)
     NOTE === HAS_NOTE
     HAS_NOTE --> EXPENSE
 
-    %% WEAK/ASSOCIATIVE ENTITY: EXPENSE TAG
-    %% Bridges the M:N between Expense and Tag
+    %% WEAK/ASSOCIATIVE ENTITY: EXPENSE TAG (Uses Hexagons)
     EXPENSE_TAG === TAGS_EXP
     TAGS_EXP --> EXPENSE
 
@@ -401,7 +399,8 @@ erDiagram
     }
 
     TRANSACTION_NOTE {
-        int note_id PK
+        %% Marked as discriminator because native underlining crashes Mermaid
+        int note_id_discriminator PK
         int expense_id FK
         text note_text
         datetime created_at
@@ -413,8 +412,9 @@ erDiagram
     }
 
     EXPENSE_TAG {
-        int expense_id PK
-        int tag_id FK
+        %% Both form the composite key and act as discriminators for the associative entity
+        int expense_id_discriminator PK
+        int tag_id_discriminator PK
     }
 
     REMINDER {
