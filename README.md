@@ -35,160 +35,286 @@ Node.js + Express + MySQL REST API with JWT authentication.
 
 ```mermaid
 erDiagram
+    USER {
+        int user_id PK
+        varchar(255) name
+        varchar(255) email
+        varchar(255) password
+        varchar(20) phone
+        datetime created_at
+    }
 
-USER {
-    int user_id PK
-    string name
-    string email
-    string password
-    string phone
-    datetime created_at
-}
+    ACCOUNT {
+        int account_id PK
+        int user_id FK
+        varchar(255) account_name
+        varchar(50) account_type
+        decimal(15_2) balance
+        datetime created_at
+    }
 
-ACCOUNT {
-    int account_id PK
-    int user_id FK
-    string account_name
-    string account_type
-    decimal balance
-    datetime created_at
-}
+    CATEGORY {
+        int category_id PK
+        varchar(100) category_name
+    }
 
-CATEGORY {
-    int category_id PK
-    string category_name
-}
+    PAYMENT_METHOD {
+        int payment_method_id PK
+        varchar(100) method_name
+    }
 
-PAYMENT_METHOD {
-    int payment_method_id PK
-    string method_name
-}
+    EXPENSE {
+        int expense_id PK
+        int account_id FK
+        int category_id FK
+        int payment_method_id FK
+        decimal(15_2) amount
+        date date
+        varchar(500) description
+        int recurring_id FK "Nullable"
+    }
 
-EXPENSE {
-    int expense_id PK
-    int account_id FK
-    int category_id FK
-    int payment_method_id FK
-    decimal amount
-    date date
-    string description
-}
+    INCOME {
+        int income_id PK
+        int account_id FK
+        decimal(15_2) amount
+        date date
+        varchar(255) source
+        varchar(500) description
+    }
 
-INCOME {
-    int income_id PK
-    int account_id FK
-    decimal amount
-    date date
-    string source
-    string description
-}
+    BUDGET {
+        int budget_id PK
+        int user_id FK
+        int category_id FK
+        decimal(15_2) amount
+        tinyint month
+        smallint year
+    }
 
-BUDGET {
-    int budget_id PK
-    int user_id FK
-    int category_id FK
-    decimal amount
-    int month
-    int year
-}
+    RECURRING_PAYMENT {
+        int recurring_id PK
+        int user_id FK
+        varchar(120) title
+        int account_id FK
+        int category_id FK
+        int payment_method_id FK
+        decimal(15_2) amount
+        enum frequency
+        date start_date
+        date end_date
+        enum status
+    }
 
-RECURRING_PAYMENT {
-    int recurring_id PK
-    int user_id FK
-    int account_id FK
-    int category_id FK
-    int payment_method_id FK
-    decimal amount
-    string frequency
-    date start_date
-    date end_date
-    string status
-}
+    SAVINGS_GOAL {
+        int goal_id PK
+        int user_id FK
+        int account_id FK
+        varchar(255) goal_name
+        decimal(15_2) target_amount
+        decimal(15_2) saved_amount
+        date deadline
+    }
 
-SAVINGS_GOAL {
-    int goal_id PK
-    int user_id FK
-    int account_id FK
-    string goal_name
-    decimal target_amount
-    decimal saved_amount
-    date deadline
-}
+    TRANSACTION_NOTE {
+        int note_id PK
+        int expense_id FK
+        text note_text
+        datetime created_at
+    }
 
-TRANSACTION_NOTE {
-    int note_id PK
-    int expense_id FK
-    string note_text
-    datetime created_at
-}
+    TAG {
+        int tag_id PK
+        varchar(100) tag_name
+    }
 
-TAG {
-    int tag_id PK
-    string tag_name
-}
+    EXPENSE_TAG {
+        int expense_id PK
+        int tag_id FK
+    }
 
-EXPENSE_TAG {
-    int expense_id FK
-    int tag_id FK
-}
+    REMINDER {
+        int reminder_id PK
+        int user_id FK
+        varchar(100) reminder_type
+        date reminder_date
+        varchar(500) description
+        enum status
+    }
 
-REMINDER {
-    int reminder_id PK
-    int user_id FK
-    string reminder_type
-    date reminder_date
-    string description
-    string status
-}
+    PERSON {
+        int person_id PK
+        int user_id FK
+        varchar(255) person_name
+        varchar(20) phone
+        varchar(255) email
+        text notes
+    }
 
-PERSON {
-    int person_id PK
-    int user_id FK
-    string person_name
-    string phone
-    string email
-    string notes
-}
+    LOAN {
+        int loan_id PK
+        int user_id FK
+        int person_id FK
+        enum loan_type
+        decimal(15_2) amount
+        date given_date
+        date due_date
+        varchar(500) description
+        enum status
+        date repaid_date
+    }
 
-LOAN {
-    int loan_id PK
-    int user_id FK
-    int person_id FK
-    string loan_type
-    decimal amount
-    date given_date
-    date due_date
-    string description
-    string status
-}
+    %% RELATIONSHIPS (Strict 1-to-Many)
+    USER ||--o{ ACCOUNT : "has"
+    USER ||--o{ BUDGET : "sets"
+    USER ||--o{ RECURRING_PAYMENT : "creates"
+    USER ||--o{ SAVINGS_GOAL : "sets"
+    USER ||--o{ REMINDER : "creates"
+    USER ||--o{ PERSON : "manages"
+    USER ||--o{ LOAN : "owns"
+
+    ACCOUNT ||--o{ EXPENSE : "records"
+    ACCOUNT ||--o{ INCOME : "receives"
+    ACCOUNT ||--o{ RECURRING_PAYMENT : "used_for"
+    ACCOUNT ||--o{ SAVINGS_GOAL : "linked_to"
+
+    CATEGORY ||--o{ EXPENSE : "classifies"
+    CATEGORY ||--o{ BUDGET : "used_in"
+    CATEGORY ||--o{ RECURRING_PAYMENT : "used_in"
+
+    PAYMENT_METHOD ||--o{ EXPENSE : "paid_by"
+    PAYMENT_METHOD ||--o{ RECURRING_PAYMENT : "paid_by"
+
+    EXPENSE ||--o{ TRANSACTION_NOTE : "has"
+    EXPENSE ||--o{ EXPENSE_TAG : "tagged_in"
+
+    TAG ||--o{ EXPENSE_TAG : "used_in"
+
+    PERSON ||--o{ LOAN : "involved_in"
+
+    %% NEW: Zero-or-One to Many (Because recurring_id is NULLABLE in EXPENSE)
+    RECURRING_PAYMENT |o--o{ EXPENSE : "generates"
+```
 
 
-USER ||--o{ ACCOUNT : has
-USER ||--o{ BUDGET : sets
-USER ||--o{ RECURRING_PAYMENT : creates
-USER ||--o{ SAVINGS_GOAL : sets
-USER ||--o{ REMINDER : creates
-USER ||--o{ PERSON : manages
-USER ||--o{ LOAN : owns
+```mermaid
+flowchart TD
+    %% ENTITIES (Strong)
+    USER[User]
+    ACCOUNT[Account]
+    CATEGORY[Category]
+    PAYMENT[Payment Method]
+    EXPENSE[Expense]
+    INCOME[Income]
+    BUDGET[Budget]
+    RECURRING[Recurring Payment]
+    SAVINGS[Savings Goal]
+    TAG[Tag]
+    REMINDER[Reminder]
+    PERSON[Person]
+    LOAN[Loan]
 
-ACCOUNT ||--o{ EXPENSE : records
-ACCOUNT ||--o{ INCOME : receives
-ACCOUNT ||--o{ RECURRING_PAYMENT : used_for
-ACCOUNT ||--o{ SAVINGS_GOAL : linked_to
+    %% ENTITIES (Weak - Doubly Bounded Box)
+    NOTE[[Transaction Note]]
+    EXPENSE_TAG[[Expense Tag]]
 
-CATEGORY ||--o{ EXPENSE : classifies
-CATEGORY ||--o{ BUDGET : used_in
-CATEGORY ||--o{ RECURRING_PAYMENT : used_in
+    %% RELATIONSHIPS (Diamonds)
+    OWNS_ACC{owns}
+    SETS_BUD{sets}
+    CREATES_REC{creates}
+    HAS_GOAL{has}
+    SETS_REM{sets}
+    MANAGES_PER{manages}
+    OWNS_LOAN{owns}
+    RECORDS_EXP{records}
+    RECEIVES_INC{receives}
+    USED_FOR_REC{used_for}
+    LINKED_SAV{linked_to}
+    CATEGORIZES_EXP{categorizes}
+    LIMITS_BUD{limits}
+    USED_IN_REC{used_in}
+    PAID_BY_EXP{paid_by}
+    PAID_BY_REC{paid_by}
+    GENERATES_EXP{generates}
+    HAS_NOTE{has}
+    TAGS_EXP{tagged_in}
+    TAGS_TAG{used_in}
+    INVOLVED_IN{involved_in}
 
-PAYMENT_METHOD ||--o{ EXPENSE : paid_by
-PAYMENT_METHOD ||--o{ RECURRING_PAYMENT : paid_by
+    %% USER RELATIONS
+    %% M-side Total (===), 1-side Partial (-->)
+    ACCOUNT === OWNS_ACC
+    OWNS_ACC --> USER
 
-EXPENSE ||--o{ TRANSACTION_NOTE : has
-EXPENSE ||--o{ EXPENSE_TAG : tagged_in
+    BUDGET === SETS_BUD
+    SETS_BUD --> USER
 
-TAG ||--o{ EXPENSE_TAG : used_in
+    RECURRING === CREATES_REC
+    CREATES_REC --> USER
 
-PERSON ||--o{ LOAN : involved_in
+    SAVINGS === HAS_GOAL
+    HAS_GOAL --> USER
+
+    REMINDER === SETS_REM
+    SETS_REM --> USER
+
+    PERSON === MANAGES_PER
+    MANAGES_PER --> USER
+
+    LOAN === OWNS_LOAN
+    OWNS_LOAN --> USER
+
+    %% ACCOUNT RELATIONS
+    EXPENSE === RECORDS_EXP
+    RECORDS_EXP --> ACCOUNT
+
+    INCOME === RECEIVES_INC
+    RECEIVES_INC --> ACCOUNT
+
+    RECURRING === USED_FOR_REC
+    USED_FOR_REC --> ACCOUNT
+
+    SAVINGS === LINKED_SAV
+    LINKED_SAV --> ACCOUNT
+
+    %% CATEGORY RELATIONS
+    EXPENSE === CATEGORIZES_EXP
+    CATEGORIZES_EXP --> CATEGORY
+
+    BUDGET === LIMITS_BUD
+    LIMITS_BUD --> CATEGORY
+
+    RECURRING === USED_IN_REC
+    USED_IN_REC --> CATEGORY
+
+    %% PAYMENT METHOD RELATIONS
+    EXPENSE === PAID_BY_EXP
+    PAID_BY_EXP --> PAYMENT
+
+    RECURRING === PAID_BY_REC
+    PAID_BY_REC --> PAYMENT
+
+    %% RECURRING PAYMENT TO EXPENSE
+    %% Expense's recurring_id is NULLable (Partial participation on both sides)
+    EXPENSE --- GENERATES_EXP
+    GENERATES_EXP --> RECURRING
+
+    %% WEAK ENTITY: TRANSACTION NOTE
+    %% Note has total participation, Expense is the 1-side
+    NOTE === HAS_NOTE
+    HAS_NOTE --> EXPENSE
+
+    %% WEAK/ASSOCIATIVE ENTITY: EXPENSE TAG
+    %% Bridges the M:N between Expense and Tag
+    EXPENSE_TAG === TAGS_EXP
+    TAGS_EXP --> EXPENSE
+
+    EXPENSE_TAG === TAGS_TAG
+    TAGS_TAG --> TAG
+
+    %% PERSON & LOAN RELATIONS
+    LOAN === INVOLVED_IN
+    INVOLVED_IN --> PERSON
 ```
 
 ---
